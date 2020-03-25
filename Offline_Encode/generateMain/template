@@ -1,0 +1,9 @@
+#include "klee/klee.h"
+
+%s
+
+int main() {
+    %s
+    %s
+    return 0;
+}
