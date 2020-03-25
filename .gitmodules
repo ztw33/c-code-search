@@ -1,3 +1,6 @@
 [submodule "graduation_thesis"]
 	path = graduation_thesis
 	url = https://github.com/ztw33/graduation_thesis
+[submodule "klee"]
+	path = klee
+	url = https://github.com/ztw33/klee
