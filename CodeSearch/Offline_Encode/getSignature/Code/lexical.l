@@ -53,10 +53,10 @@ blank   [ \t\r]
 "if"    { if (print_lex) printf("IF\n"); return IF; }
 "else"  { if (print_lex) printf("ELSE\n"); return ELSE; }
 "while" { if (print_lex) printf("WHILE\n"); return WHILE; }
-"int"|"float"   { if (print_lex) printf("TYPE, %s\n", yytext); 
-                    yylval.type_string = strdup(yytext);
-                    return TYPE; 
-                }
+"int"|"float"|"char"|"double"   { if (print_lex) printf("TYPE, %s\n", yytext); 
+                                    yylval.type_string = strdup(yytext);
+                                    return TYPE; 
+                                }
 "struct"    { if (print_lex) printf("STRUCT\n"); return STRUCT; }
 "return"    { if (print_lex) printf("RETURN\n"); return RETURN; }
 "//"    { 

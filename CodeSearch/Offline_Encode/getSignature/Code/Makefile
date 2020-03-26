@@ -16,12 +16,18 @@ LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
 YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
+MYSQL = $(shell mysql_config --cflags --libs)
 
-parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+parser: syntax main utils $(filter-out $(LFO),$(OBJS))
+	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly $(MYSQL)
+
+main:
+	$(CC) -c main.c -o main.o $(MYSQL)
+utils:
+	$(CC) -c utils.c -o utils.o $(MYSQL)
 
 syntax: lexical syntax-c
-	$(CC) -c $(YFC) -o $(YFO)
+	$(CC) -c $(YFC) -o $(YFO) $(MYSQL)
 
 lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
@@ -40,3 +46,5 @@ clean:
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
 	rm -f *~
+ztw:
+	$(filter-out $(LFO),$(OBJS))
