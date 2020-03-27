@@ -24,7 +24,7 @@
         int lineNum;
         union {
             int intVal;
-            float floatVal;
+            double doubleVal;
             char* stringVal;
         };
         struct Node* firstChild;
@@ -48,7 +48,7 @@
 /* declared types */
 %union {
     int type_int;
-    float type_float;
+    double type_double;
     char* type_string;
     struct Node* type_pnode;
 }
@@ -60,7 +60,7 @@
 %token DOT
 %token LP RP LB RB LC RC
 %token <type_int> INT
-%token <type_float> FLOAT
+%token <type_double> DOUBLE
 %token <type_string> ID TYPE
 %token IF ELSE WHILE STRUCT RETURN
 

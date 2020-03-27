@@ -16,7 +16,7 @@
 letter  [A-Za-z]
 digit   [0-9]
 INT     0|([1-9]{digit}*)
-FLOAT   {INT}"."{digit}+
+DOUBLE   {INT}"."{digit}+
 ID      ({letter}|{digit}|_)+
 RELOP   ">"|"<"|">="|"<="|"=="|"!="
 blank   [ \t\r]
@@ -45,10 +45,10 @@ blank   [ \t\r]
             yylval.type_int = atoi(yytext);
             return INT;
         }
-{FLOAT} { 
-            if (print_lex) printf("float, %f\n", atof(yytext)); 
-            yylval.type_float = atof(yytext);
-            return FLOAT;
+{DOUBLE} { 
+            if (print_lex) printf("double, %f\n", atof(yytext)); 
+            yylval.type_double = atof(yytext);
+            return DOUBLE;
         }
 "if"    { if (print_lex) printf("IF\n"); return IF; }
 "else"  { if (print_lex) printf("ELSE\n"); return ELSE; }
