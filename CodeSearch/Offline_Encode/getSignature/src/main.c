@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "error occured when saving to database\n");
         }
         destroySyntaxTree(syntaxTreeRootNode);
+        return funcID;
     }
-    return 0;
+    return -1;
 }

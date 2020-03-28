@@ -1,6 +1,3 @@
-# GNU make手册：http://www.gnu.org/software/make/manual/make.html
-# ************ 遇到不明白的地方请google以及阅读手册 *************
-
 # 编译器设定和编译选项
 CC = gcc
 FLEX = flex
@@ -16,15 +13,18 @@ LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
 YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
+MAINC = $(shell find ./ -name "main.c")
+UTILSC = $(shell find ./ -name "utils.c")
+MAINO = $(MAINC:.c=.o)
+UTILSO = $(UTILSC:.c=.o)
 MYSQL = $(shell mysql_config --cflags --libs)
 
-parser: syntax main utils $(filter-out $(LFO),$(OBJS))
+parser: syntax cfile $(filter-out $(LFO),$(OBJS))
 	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly $(MYSQL)
 
-main:
-	$(CC) -c main.c -o main.o $(MYSQL)
-utils:
-	$(CC) -c utils.c -o utils.o $(MYSQL)
+cfile:
+	$(CC) -c $(MAINC) -o $(MAINO) $(MYSQL)
+	$(CC) -c $(UTILSC) -o $(UTILSO) $(MYSQL)
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO) $(MYSQL)
@@ -33,7 +33,7 @@ lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
 
 syntax-c: $(YFILE)
-	$(BISON) -o $(YFC) -d -v $(YFILE)
+	$(BISON) -o $(YFC) -d $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
@@ -42,9 +42,7 @@ syntax-c: $(YFILE)
 test:
 	./parser ../Test/test1.cmm
 clean:
-	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
+	rm -f parser
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
 	rm -f *~
-ztw:
-	$(filter-out $(LFO),$(OBJS))

@@ -1,4 +1,8 @@
+# -*- coding: UTF-8 -*-
+
 import mysql.connector
+import re
+import os
 
 hostname = "localhost"
 user = "root"
@@ -25,11 +29,12 @@ class CodeGenerator:
         param_code = ""
         for i, type in enumerate(param_type_list):
             index = i + 1
-            if type == "int" or type == "double" or type == "char":
-                param_code += "    {type} p{index};\n    klee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
-            elif type == "int*":
-                pass
-            elif type == "double*":
+            if type == "int" or type == "double":
+                param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
+            elif type == "char":
+                param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
+                param_code += "\tklee_assume(p{index} >= 32 & p{index} <= 126);".format(index=index)  # 仅为可见字符
+            elif type == "int*" or type == "double*":
                 pass
             elif type == "char*":
                 pass
@@ -43,3 +48,10 @@ class CodeGenerator:
         param = ["p{}".format(str(i)) for i in range(1, param_num+1)]
         param = ", ".join(param)
         return "{}({});".format(func_name, param)
+
+    @staticmethod
+    def generate_driver_filepath(filepath, func_id):
+        tmp = re.split("/", filepath)
+        filename = tmp[-1]
+        return "{}/1_DriverCode/{}_{}".format(os.path.dirname(os.path.dirname(filepath)), func_id, filename)
+        

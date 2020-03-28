@@ -262,8 +262,8 @@ void _printSyntaxTree(struct Node* rootNode, int spaceNum) {
                 printf("%s\n", rootNode->stringVal);
             } else if (strcmp(rootNode->nodeName, "INT") == 0) {
                 printf("%d\n", rootNode->intVal);
-            } else if (strcmp(rootNode->nodeName, "FLOAT") == 0) {
-                printf("%f\n", rootNode->floatVal);
+            } else if (strcmp(rootNode->nodeName, "DOUBLE") == 0) {
+                printf("%f\n", rootNode->doubleVal);
             } else {
                 printf("ERROR!!!");
             }

@@ -4,6 +4,6 @@
 
 int main() {
 %s
-    %s
-    return 0;
+	%s
+	return 0;
 }
