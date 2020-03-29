@@ -18,19 +18,23 @@ def init_conn():
 
 def getFiles(dir, suffix): 
     res = []
-    for root, directory, files in os.walk(dir):
+    for root, _directory, files in os.walk(dir):
         for filename in files:
-            name, suf = os.path.splitext(filename)
+            _name, suf = os.path.splitext(filename)
             if suf == suffix:
                 res.append(os.path.join(os.path.abspath(root), filename))
     return res
 
-def db_insert(func_id, filepath):
-    cursor = db_conn.cursor()
+def db_insert(cursor, func_id, filepath):
     sql = "INSERT INTO pc (func_id, smt_filepath) VALUES (%s, %s)"
     val = (func_id, filepath)
     cursor.execute(sql, val)
     db_conn.commit()
+
+def db_close(cursor, db_conn):
+    cursor.close()
+    if db_conn is not None and db_conn.is_connected():
+        db_conn.close()
 
 if __name__ == "__main__":
     if (len(sys.argv) != 3):
@@ -42,9 +46,11 @@ if __name__ == "__main__":
 
     try:
         db_conn = init_conn()
+        cursor = db_conn.cursor()
         for file in getFiles(smt_dir, '.smt2'):
             print(file)
-            db_insert(func_id, file)
+            db_insert(cursor, func_id, file)
+        db_close(cursor, db_conn)
     except:
         print("执行数据库操作时出错，请检查数据库配置是否正确")
         exit(1)

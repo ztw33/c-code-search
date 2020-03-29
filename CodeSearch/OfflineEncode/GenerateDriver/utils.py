@@ -20,7 +20,12 @@ class DBUtil:
         cursor = self.db_conn.cursor()
         cursor.execute("SELECT * FROM func_signature where id = " + id)
         result = cursor.fetchone()
+        cursor.close()
         return result[1], result[2], result[3], result[4], result[5]
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.db_conn is not None and self.db_conn.is_connected():
+            self.db_conn.close()
 
 class CodeGenerator:
     @staticmethod

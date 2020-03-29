@@ -1,8 +1,8 @@
 #!/bin/bash
-parserPath="getSignature/parser"
+parserPath="GetSignature/parser"
 if [ ! -x "$parserPath" ]; then
     echo "\033[34m====================生成parser====================\033[0m"
-    cd getSignature
+    cd GetSignature
     make parser
     cd ..
     echo "\033[32m[CodeSearch: SUCCESS] 生成parser成功\033[0m"
@@ -25,7 +25,7 @@ echo "\033[32m[CodeSearch: SUCCESS] 提取函数签名成功\033[0m"
 
 
 echo "\033[34m====================生成驱动代码====================\033[0m"
-python3 ./generateDriver/generateCode.py "$funcID"
+python3 ./GenerateDriver/generateCode.py "$funcID"
 if [ $? = 1 ]; then
     echo "\033[31m[CodeSearch: ERROR] 生成驱动代码时失败\033[0m"
     exit
@@ -44,7 +44,7 @@ echo "\033[32m[CodeSearch: SUCCESS] 生成路径约束成功\033[0m"
 
 
 echo "\033[34m====================路径约束入库====================\033[0m"
-python3 ./pcToDB/pcToDB.py "$funcID" "$smtDir"
+python3 ./PCToDB/pcToDB.py "$funcID" "$smtDir"
 if [ $? = 1 ]; then
     echo "\033[31m[CodeSearch: ERROR] 路径约束入库时失败\033[0m"
     exit
