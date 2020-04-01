@@ -33,7 +33,7 @@ class CodeGenerator:
         param_type_list = param_type.split(',')
         param_code = ""
         for i, type in enumerate(param_type_list):
-            index = i + 1
+            index = i
             if type == "int" or type == "double":
                 param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
             elif type == "char":
@@ -50,7 +50,7 @@ class CodeGenerator:
     
     @staticmethod
     def generate_invoke_code(param_num, func_name):
-        param = ["p{}".format(str(i)) for i in range(1, param_num+1)]
+        param = ["p{}".format(str(i)) for i in range(0, param_num)]
         param = ", ".join(param)
         return "{}({});".format(func_name, param)
 

@@ -1,13 +1,19 @@
 # -*- coding: UTF-8 -*-
-import json
 import sys
+# import os
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# sys.path.append(BASE_DIR)
+
 from TypeMatch.typeMatch import TypeMatcher
+import json
+
 
 def search(query_stmt):
-    candidate_func = TypeMatcher.match(query_stmt)
+    type_match_result = TypeMatcher.match(query_stmt)
+    print(type_match_result)
 
 if __name__ == "__main__":
-    if (len(sys.argv) != 2):
+    if len(sys.argv) != 2:
         print("参数个数错误")
         exit(1)
     
