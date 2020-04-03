@@ -11,9 +11,16 @@ int saveToDB(struct FuncSignature func) {
         return -1;
     }
     char sql[1024];
-    sprintf(sql, "INSERT INTO func_signature (func_name, file_path, ret_type, param_num, param_type, doc, keyword) "
+    if (func.paramType == NULL) {
+        sprintf(sql, "INSERT INTO func_signature (func_name, file_path, ret_type, param_num, param_type, doc, keyword) "
+                 "VALUES ('%s', '%s', '%s', %d, null, null, null)", \
+                 func.funcName, func.filePath, func.retType, func.paramNum);
+    } else {
+        sprintf(sql, "INSERT INTO func_signature (func_name, file_path, ret_type, param_num, param_type, doc, keyword) "
                  "VALUES ('%s', '%s', '%s', %d, '%s', null, null)", \
                  func.funcName, func.filePath, func.retType, func.paramNum, func.paramType);
+    }
+    
     if (mysql_query(connection, sql)) {
 		finish_with_error(connection);
         return -1;

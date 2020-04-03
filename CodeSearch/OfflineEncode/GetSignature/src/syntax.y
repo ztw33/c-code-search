@@ -119,17 +119,6 @@ VarDec : ID {
             buildRel(nodeVarDec, 4, $1, nodeLB, nodeINT, nodeRB);
             $$ = nodeVarDec;
         }
-    | VarDec LB error RB {
-            if (isNewError(@3.first_line)) {
-                printError('B', @3.first_line, "Syntax error between \"[]\"");
-                struct Node* nodeLB = createNewNode("LB", NonValToken, @2.first_line);
-                struct Node* nodeError = createNewNode("error", NonValToken, @3.first_line);
-                struct Node* nodeRB = createNewNode("RB", NonValToken, @4.first_line);
-                struct Node* nodeVarDec = createNewNode("VarDec", NonTerm, @$.first_line);
-                buildRel(nodeVarDec, 4, $1, nodeLB, nodeError, nodeRB);
-                $$ = nodeVarDec;
-            }
-        }
     ;
 FunDec : ID LP VarList RP {
             struct Node* nodeID = createNewNode("ID", ValToken, @1.first_line);
@@ -164,31 +153,6 @@ FunDec : ID LP VarList RP {
                 buildRel(nodeFunDec, 3, nodeID, nodeLP, nodeError);
                 $$ = nodeFunDec;
             } 
-        }
-    | ID LP error RP {
-            if (isNewError(@3.first_line)) {
-                printError('B', @3.first_line, "Syntax error between ()");
-                struct Node* nodeID = createNewNode("ID", ValToken, @1.first_line);
-                nodeID->stringVal = $1;
-                struct Node* nodeLP = createNewNode("LP", NonValToken, @2.first_line);
-                struct Node* nodeError = createNewNode("error", NonValToken, @3.first_line);
-                struct Node* nodeRP = createNewNode("RP", NonValToken, @4.first_line);
-                struct Node* nodeFunDec = createNewNode("FunDec", NonTerm, @$.first_line);
-                buildRel(nodeFunDec, 4, nodeID, nodeLP, nodeError, nodeRP);
-                $$ = nodeFunDec;
-            }
-        }
-    | ID error RP {
-            if (isNewError(@2.first_line)) {
-                printError('B', @2.first_line, "Missing \"(\"");
-                struct Node* nodeID = createNewNode("ID", ValToken, @1.first_line);
-                nodeID->stringVal = $1;
-                struct Node* nodeError = createNewNode("error", NonValToken, @2.first_line);
-                struct Node* nodeRP = createNewNode("RP", NonValToken, @3.first_line);
-                struct Node* nodeFunDec = createNewNode("FunDec", NonTerm, @$.first_line);
-                buildRel(nodeFunDec, 3, nodeID, nodeError, nodeRP);
-                $$ = nodeFunDec;
-            }
         }
     ;
 VarList : ParamDec COMMA VarList {

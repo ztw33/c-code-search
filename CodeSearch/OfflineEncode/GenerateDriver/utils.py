@@ -30,6 +30,8 @@ class DBUtil:
 class CodeGenerator:
     @staticmethod
     def generate_param_code(param_num, param_type):
+        if param_num == 0:
+            return ""
         param_type_list = param_type.split(',')
         param_code = ""
         for i, type in enumerate(param_type_list):
