@@ -38,8 +38,7 @@ class TypeMatcher:
     # query_type, func_type_index
     def _equal_type(q_list, fi_list, param_num, func_param_type):
         for index in range(0, param_num):
-            if not q_list[index] == func_param_type[fi_list[index]]:
-                if not (q_list[index] == "int" and func_param_type[fi_list[index]] == "double"):
-                    return False
+            if q_list[index] != func_param_type[fi_list[index]]:
+                return False
         return True
             

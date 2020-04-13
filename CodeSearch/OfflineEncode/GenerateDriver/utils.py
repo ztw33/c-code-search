@@ -36,12 +36,12 @@ class CodeGenerator:
         param_code = ""
         for i, type in enumerate(param_type_list):
             index = i
-            if type == "int" or type == "double":
+            if type == "int":
                 param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
             elif type == "char":
                 param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
                 param_code += "\tklee_assume(p{index} >= 32 & p{index} <= 126);".format(index=index)  # 仅为可见字符
-            elif type == "int*" or type == "double*":
+            elif type == "int*":
                 pass
             elif type == "char*":
                 pass
