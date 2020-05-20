@@ -3,6 +3,8 @@
 import mysql.connector
 import re
 import os
+from ParamCode import ParamCode
+from os.path import dirname, join
 
 hostname = "localhost"
 user = "root"
@@ -29,26 +31,22 @@ class DBUtil:
 
 class CodeGenerator:
     @staticmethod
-    def generate_param_code(param_num, param_type):
+    def generate_param_code_tree(param_num, param_type):
         if param_num == 0:
-            return ""
+            return None
         param_type_list = param_type.split(',')
-        param_code = ""
+        param_code_tree = None
+        prev_param = None
         for i, type in enumerate(param_type_list):
-            index = i
-            if type == "int":
-                param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
-            elif type == "char":
-                param_code += "\t{type} p{index};\n\tklee_make_symbolic(&p{index}, sizeof(p{index}), \"?p{index}\");\n".format(type=type, index=index)
-                param_code += "\tklee_assume(p{index} >= 32 & p{index} <= 126);".format(index=index)  # 仅为可见字符
-            elif type == "int*":
-                pass
-            elif type == "char*":
-                pass
+            param = ParamCode(type, i)
+            param.gen_param_code()
+            if param_code_tree is None:
+                param_code_tree = param
+                prev_param = param
             else:
-                print("异常的数据类型！")
-                return ""
-        return param_code
+                prev_param.child = param
+                prev_param = param
+        return param_code_tree
     
     @staticmethod
     def generate_invoke_code(param_num, func_name):
@@ -57,8 +55,42 @@ class CodeGenerator:
         return "{}({});".format(func_name, param)
 
     @staticmethod
-    def generate_driver_filepath(filepath, func_id):
+    def generate_driver_filepath(filepath, func_id, infix):
         tmp = re.split("/", filepath)
         filename = tmp[-1]
-        return "{}/1_DriverCode/{}_{}".format(os.path.dirname(os.path.dirname(filepath)), func_id, filename)
+        if infix is None or infix == "":
+            return "{}/1_DriverCode/{}_{}".format(os.path.dirname(os.path.dirname(filepath)), func_id, filename)
+        else:
+            return "{}/1_DriverCode/{}_{}_{}".format(os.path.dirname(os.path.dirname(filepath)), func_id, infix, filename)
+
+    @staticmethod
+    def generate_instance_code(func_code, param_code_tree, invoke_code, filepath, func_id):
         
+        with open(join(dirname(__file__), "template"), "r") as f:
+            template = f.read()
+        
+        def _gen(prev_code, param, infix):  # infix:中缀，如果有数组类型的参数，文件名将以index[length]作为中缀插入到func_id和filename中间
+            if param is None:
+                path = CodeGenerator.generate_driver_filepath(filepath, func_id, infix)
+                with open(path, "w") as f:
+                    instance_code = template % (func_code, prev_code, invoke_code)
+                    f.write(instance_code)
+            else:
+                if param.sibling is None:
+                    prev_code += ("\n\t" + "\n\t".join(param.code))
+                    _gen(prev_code, param.child, infix)
+                else:
+                    p = param
+                    length = 1
+                    while p is not None:
+                        if infix is None or infix == "":
+                            new_infix = "{index}[{len}]".format(index=str(p.param_index), len=length)
+                        else:
+                            new_infix = infix + ",{index}[{len}]".format(index=str(p.param_index), len=length)
+                        new_code = prev_code + ("\n\t" + "\n\t".join(p.code))
+                        _gen(new_code, p.child, new_infix)
+                        p = p.sibling
+                        length += 1
+                        
+        _gen("", param_code_tree, None)
+   

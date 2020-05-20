@@ -4,7 +4,6 @@
 import sys
 import os
 from utils import DBUtil, CodeGenerator
-from os.path import dirname, join
 
 if __name__ == "__main__":
     if (len(sys.argv) != 2):
@@ -19,20 +18,15 @@ if __name__ == "__main__":
         print("数据库查询时出错，请检查数据库参数以及是否输入了正确的func ID")
         exit(1)
 
+    # print(func_name, filepath, ret_type, param_num, param_type)
     try:
-        with open(join(dirname(__file__), "template"), "r") as f:
-            template = f.read()
         with open(filepath, "r") as f:
             func_code = f.read()
 
-        param_code = CodeGenerator.generate_param_code(param_num, param_type)
+        param_code_tree = CodeGenerator.generate_param_code_tree(param_num, param_type)
         invoke_code = CodeGenerator.generate_invoke_code(param_num, func_name)
-        instance_code = template % (func_code, param_code, invoke_code)
-        print(instance_code)
-        driver_filepath = CodeGenerator.generate_driver_filepath(filepath, func_id)
-
-        with open(driver_filepath, "w") as f:
-            f.write(instance_code)
-    except:
+        CodeGenerator.generate_instance_code(func_code, param_code_tree, invoke_code, filepath, func_id)
+    except Exception as e:
+        print(str(e))
         print("生成代码时出错，请检查文件路径")
         exit(1)

@@ -12,6 +12,7 @@ from Convert2SMT.PCFileParser import PCFileParser
 from CheckSAT.SMTSolver import SMTSolver
 from z3 import sat, unsat, unknown
 from utils.printUtil import printError
+import re
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=4)
@@ -30,10 +31,31 @@ def search(query_stmt):
         match_rel = func_sign.get("match_rel")  # 匹配关系
 
         for filepath in smt_files_path:
-            parse_result = PCFileParser.parse(filepath, func_sign.get("ret_type"))
-            # pp.pprint(parse_result)
+            dirNameInfix = filepath.split('/')[-2].split('_')[1]
+            parse_result = None
+            if re.match(r"^[0-9]+\[[0-9]+\]", dirNameInfix) is not None:  # 函数参数中包含数组的
+                infix = dirNameInfix.split(',')
+                array_param_length = {}
+                for inf in infix:
+                    match_obj = re.match(r"([0-9]+)\[([0-9]+)\]", inf)
+                    param_index = match_obj.group(1)
+                    array_length = match_obj.group(2)
+                    array_param_length[int(param_index)] = int(array_length)
+            else:
+                parse_result = PCFileParser.parse(filepath, func_sign.get("ret_type"))
 
             for match_seq in match_rel:
+                if parse_result is None:
+                    func_param_type = func_sign.get("param_type")
+                    input_param_val = func_sign.get("input_param_val")
+                    flag = True
+                    for i, f in enumerate(match_seq):
+                        if func_param_type[f] == "char*" and array_param_length[f] != len(input_param_val[i]):
+                            flag = False
+                    if flag is False:
+                        continue
+                    parse_result = PCFileParser.parse(filepath, func_sign.get("ret_type"))
+
                 constraints = SMTConverter.query_to_cons(match_seq, func_sign, query_stmt.get("ret_val"), parse_result)
                 # print("constraints:\n", "\n".join(constraints))
                 result = SMTSolver.check_sat(constraints)
@@ -46,7 +68,7 @@ def search(query_stmt):
                     pass
                 else:
                     printError("unexpected result from SMTSolver")
-            print("\n")
+
     
     if len(match_func_id) == 0:
         print("无符合查询条件的函数！")

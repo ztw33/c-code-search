@@ -12,6 +12,14 @@ class SMTConverter:
         elif param_type == "char":
             smt_val = "(_ bv{} 8)".format(ord(param_val))
             return "(assert {exp} )".format(exp=SMTConverter.equal_exp("?p{}".format(param_index), param_type, smt_val))
+        elif param_type == "char*":
+            length = len(param_val)
+            if (length <= 0):
+                return "(assert true )"
+            smt_val = []
+            for c in param_val:
+                smt_val.append("(_ bv{val} 8)".format(val=ord(c)))
+            return "(assert {exp} )".format(exp=SMTConverter.equal_exp("?p{}".format(param_index), param_type, smt_val))
         else:
             printError("暂不支持的数据类型{}".format(param_type))
 
@@ -21,22 +29,27 @@ class SMTConverter:
         return "(declare-fun {var_name} () (Array (_ BitVec 32) (_ BitVec 8) ) )".format(var_name=var_name)
 
     @staticmethod
-    def ret_assert(ret_type, ret_val, smt_format):
-        smt_val = ""
-        if smt_format:
-            smt_val = ret_val
+    def ret_assert(ret_type, ret_val):
+        smt_val = None
+        if ret_type == "int":
+            smt_val = "(_ bv{val} 32)".format(val=ret_val&0xffffffff)
+        elif ret_type == "char":
+            smt_val = "(_ bv{val} 8)".format(val=ord(ret_val))
+        elif ret_type == "char*":
+            length = len(ret_val)
+            if (length <= 0):
+                return "(assert true )"
+            smt_val = []
+            for c in ret_val:
+                smt_val.append("(_ bv{val} 8)".format(val=ord(c)))
         else:
-            if ret_type == "int":
-                smt_val = "(_ bv{val} 32)".format(val=ret_val&0xffffffff)
-            elif ret_type == "char":
-                smt_val = "(_ bv{val} 8)".format(val=ord(ret_val))
-            else:
-                printError("暂不支持的数据类型{}".format(ret_type))
+            printError("暂不支持的数据类型{}".format(ret_type))
         
         return "(assert {exp} )".format(exp=SMTConverter.equal_exp("?ret", ret_type, smt_val))
 
     
     """构造smt格式的等式 (= {smt_val} {var_name})
+    当var_type为char*时，smt_val为list类型，构造每个数组元素的等式并使用and连接
     """
     @staticmethod
     def equal_exp(var_name, var_type, smt_val):
@@ -44,6 +57,16 @@ class SMTConverter:
             return "(=  {smt_val} (concat  (select  {var_name} (_ bv3 32) ) (concat  (select  {var_name} (_ bv2 32) ) (concat  (select  {var_name} (_ bv1 32) ) (select  {var_name} (_ bv0 32) ) ) ) ) )".format(smt_val=smt_val, var_name=var_name)
         elif var_type == "char":
             return "(=  {smt_val} (select  {var_name} (_ bv0 32) ) )".format(smt_val=smt_val, var_name=var_name)
+        elif var_type == "char*":
+            if type(smt_val) != list:
+                printError("变量类型为char*，参数类型应为list类型")
+            length = len(smt_val)
+            if length <= 0:
+                printError("数组长度为0")
+            exp = "(=  {smt_val} (select  {var_name} (_ bv0 32) ) )".format(smt_val=smt_val[0], var_name=var_name)
+            for i in range(1, length):
+                exp = "(and  {prev_exp} (=  {smt_val} (select  {var_name} (_ bv{i} 32) ) ) )".format(prev_exp=exp, smt_val=smt_val[i], var_name=var_name, i=i)
+            return exp
         else:
             printError("暂不支持的数据类型{}".format(var_type))
 
@@ -63,7 +86,7 @@ class SMTConverter:
         for qi, pi in enumerate(match_seq):
             query_asserts.append(SMTConverter._param_assert(pi, param_type[pi], input_param_val[qi]))
         ret_type = func_sign.get("ret_type")
-        query_asserts.append(SMTConverter.ret_assert(ret_type, query_ret_val, smt_format=False))
+        query_asserts.append(SMTConverter.ret_assert(ret_type, query_ret_val))
         
         constraints = parse_result["set_stmts"] + \
                       parse_result["array_declarations"] + query_decs + \

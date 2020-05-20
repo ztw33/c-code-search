@@ -20,6 +20,7 @@ DOUBLE   {INT}"."{digit}+
 ID      ({letter}|{digit}|_)+
 RELOP   ">"|"<"|">="|"<="|"=="|"!="
 blank   [ \t\r]
+include #include
 %option yylineno
 %%
 {RELOP} { if (print_lex) printf("RELOP, %s\n", yytext); return RELOP; }
@@ -97,6 +98,7 @@ blank   [ \t\r]
         }
 \n      { yycolumn = 1; }
 {blank}    { }
+"#"{blank}*"include".+ {}
 .       { 
             if (isNewError(yylineno)) {
                 char msg[32];

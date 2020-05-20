@@ -5,3 +5,4 @@ def printWarning(msg):
 
 def printError(msg):
     print("[Online Search]\033[31mERROR: {}\033[0m".format(msg))
+    exit(1)

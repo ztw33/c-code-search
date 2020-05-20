@@ -33,20 +33,26 @@ fi
 echo "\033[32m[CodeSearch: SUCCESS] 生成驱动代码成功\033[0m"
 
 
-driverPath="$(find ./Test/1_DriverCode/ -name "${funcID}_*.c")"
 echo "\033[34m====================生成路径约束====================\033[0m"
-filename=$(echo "$driverPath" | sed 's/.*\///' | sed 's/\.c//')
-bcPath=./Test/2_BCFile/"$filename".bc
-clang -I ~/Graguation_project/Library/klee/include/ -emit-llvm -c "$driverPath" -o "$bcPath"
-smtDir=Test/3_SMT/"$filename"
-klee --output-dir="$smtDir" --write-smt2s "$bcPath"
+for driverPath in `find ./Test/1_DriverCode/ -name "${funcID}_*.c"`
+do
+    filename=$(echo "$driverPath" | sed 's/.*\///' | sed 's/\.c//')
+    bcPath=./Test/2_BCFile/"$filename".bc
+    clang -I ~/Graguation_project/Library/klee/include/ -emit-llvm -c "$driverPath" -o "$bcPath"
+    smtDir=Test/3_SMT/"$filename"
+    funcName=$(echo "$filename" | sed "s/${funcID}_[0-9]\+\(\[[1-5]\]_\)*//")
+    klee --libc=uclibc --output-dir="$smtDir" --target-function-name="$funcName" --write-smt2s "$bcPath"
+done
 echo "\033[32m[CodeSearch: SUCCESS] 生成路径约束成功\033[0m"
 
 
 echo "\033[34m====================路径约束入库====================\033[0m"
-python3 ./PCToDB/pcToDB.py "$funcID" "$smtDir"
-if [ $? = 1 ]; then
-    echo "\033[31m[CodeSearch: ERROR] 路径约束入库时失败\033[0m"
-    exit
-fi
+for smtDir in `find ./Test/3_SMT/ -name "${funcID}_*"`
+do
+    python3 ./PCToDB/pcToDB.py "$funcID" "$smtDir"
+    if [ $? = 1 ]; then
+        echo "\033[31m[CodeSearch: ERROR] 路径约束入库时失败\033[0m"
+        exit
+    fi
+done
 echo "\033[32m[CodeSearch: SUCCESS] 路径约束入库成功\033[0m"

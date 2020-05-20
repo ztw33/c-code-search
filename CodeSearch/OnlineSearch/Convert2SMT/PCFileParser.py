@@ -26,31 +26,60 @@ class PCFileParser:
         assert_stmt = ""
         defined_param_index = set()  
         with open(pc_filepath, "r") as f:
-            for line in f.readlines():
-                line = line.strip()
+            lines = f.readlines()
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
                 if line.startswith("(set"):   # (set
                     set_stmts.append(line)
+                    i += 1
                 elif line.startswith("(declare-fun ?p"):  # (declare-fun ?p{i} ()
                     dec_fun = re.match(r"^\(declare-fun \?p([0-9]+) \(\)", line)
                     param_index = dec_fun.group(1)
                     defined_param_index.add(int(param_index))
                     array_declarations.append(line)
+                    i += 1
                 elif line.startswith("(assert"):  # (assert
                     if assert_stmt != "":
                         printWarning("不止一个assert语句!\n语句内容: {}".format(line))
                     else:
                         assert_stmt = line
-                elif line.startswith(";return value:"):  # ;return value:
-                    ret = re.match(r"^;return value:(.*)\n?", line)
-                    ret_val = ret.group(1)
+                    i += 1
+                elif line.startswith(";RETURN VALUE"):  # ;RETURN VALUE
                     array_declarations.append(SMTConverter.define_var("?ret"))
+                    assert_content, let_stmt = PCFileParser._parse_assert(assert_stmt)
+                    if assert_content is None:
+                        printError("解析assert语句时出错")
 
-                    if len(ret_val) > 0:
+                    i += 1
+                    line = lines[i].strip()
+                    ret = re.match(r"^;return type: (.*)", line)
+                    ret_type = ret.group(1)
+                    if ret_type != "val" and ret_type != "pointer":
+                        printError("未知返回类型")
+                    else:
+                        i += 1
+                        line = lines[i].strip()
+                        ret_val = None
+                        # 值类型
+                        if ret_type == "val":
+                            ret = re.match(r"^;return val: (.*)", line)
+                            ret_val = ret.group(1)
+                            if len(ret_val) <= 0:
+                                printError("返回值为空")
+                        
+                        # 指针类型
+                        else:
+                            ret = re.match(r"^;array length: (.*)", line)
+                            array_len = int(ret.group(1))
+                            ret_val = []
+                            for j in range(array_len):
+                                i += 1
+                                line = lines[i].strip()
+                                ret = re.match(r";\[{index}\]: (.*)".format(index=j), line)
+                                ret_val.append(ret.group(1))
+
                         # 将返回值整合到assert语句中
-                        assert_content, let_stmt = PCFileParser._parse_assert(assert_stmt)
-                        if assert_content is None:
-                            printError("解析assert语句时出错")
-                            return None
                         and_exp = "(and  {origin_assert_content} {ret_equal_exp} )".format(
                             origin_assert_content=assert_content, 
                             ret_equal_exp=SMTConverter.equal_exp("?ret", pc_ret_type, ret_val))
@@ -58,12 +87,13 @@ class PCFileParser:
                             assert_stmt = "(assert {exp} )".format(exp=and_exp)
                         else:
                             assert_stmt = "(assert ( {let_stmt} {exp} ) )".format(let_stmt=let_stmt, exp=and_exp)
-                    else:
-                        printWarning("返回值为空")
+                        i += 1
+                        
                 elif len(line) > 0:
                     printWarning("未知类型的SMT语句!\n语句内容: {}".format(line))
+                    i += 1
                 else:
-                    pass
+                    i += 1
 
         return {
             "set_stmts": set_stmts,
