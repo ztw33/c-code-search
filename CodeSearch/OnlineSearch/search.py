@@ -57,7 +57,7 @@ def search(query_stmt):
                     parse_result = PCFileParser.parse(filepath, func_sign.get("ret_type"))
 
                 constraints = SMTConverter.query_to_cons(match_seq, func_sign, query_stmt.get("ret_val"), parse_result)
-                # print("constraints:\n", "\n".join(constraints))
+                #print("constraints:\n", "\n".join(constraints))
                 result = SMTSolver.check_sat(constraints)
                 if result == sat:
                     match_func_id.append(func_id)

@@ -47,7 +47,7 @@ class PCFileParser:
                     i += 1
                 elif line.startswith(";RETURN VALUE"):  # ;RETURN VALUE
                     array_declarations.append(SMTConverter.define_var("?ret"))
-                    assert_content, let_stmt = PCFileParser._parse_assert(assert_stmt)
+                    assert_content = PCFileParser._parse_assert(assert_stmt)
                     if assert_content is None:
                         printError("解析assert语句时出错")
 
@@ -80,13 +80,19 @@ class PCFileParser:
                                 ret_val.append(ret.group(1))
 
                         # 将返回值整合到assert语句中
+                        begin_index = assert_stmt.find(assert_content)
+                        if begin_index == -1:
+                            printError("解析assert_stmt有误")                       
+
                         and_exp = "(and  {origin_assert_content} {ret_equal_exp} )".format(
                             origin_assert_content=assert_content, 
                             ret_equal_exp=SMTConverter.equal_exp("?ret", pc_ret_type, ret_val))
-                        if let_stmt is None:
-                            assert_stmt = "(assert {exp} )".format(exp=and_exp)
-                        else:
-                            assert_stmt = "(assert ( {let_stmt} {exp} ) )".format(let_stmt=let_stmt, exp=and_exp)
+
+                        print("assert before: ", assert_stmt)
+                        print("assert content: ", assert_content)
+                        print("and exp: ", and_exp)
+                        assert_stmt = assert_stmt.replace(assert_content, and_exp)
+                        print("assert after: ", assert_stmt)
                         i += 1
                         
                 elif len(line) > 0:
@@ -107,7 +113,6 @@ class PCFileParser:
         assert_stmt: assert语句(assert ... )
     Returns:
         assert_content: 实际assert的内容
-        let_stmt: let语句, 若无则返回None
     """
     @staticmethod
     def _parse_assert(assert_stmt):
@@ -119,36 +124,29 @@ class PCFileParser:
             assert_exp = assert_match.group(1)
             # print(assert_exp)
             if assert_exp.startswith("("):
-                if assert_exp.startswith("(let"):
+                while assert_exp.startswith("(let"):
                     let_LP_index = next_char_index(assert_exp, 3)
                     if assert_exp[let_LP_index] != "(":
                         printError("解析assert语句时下一个不为空的字符不为\"(\"")
-                        return None, None
                     let_RP_index = match_parentheses(assert_exp, let_LP_index)
                     if let_RP_index is None:
                         printError("解析assert语句中的let语句时括号不匹配")
-                        return None, None
-
-                    let_stmt = assert_exp[1:let_RP_index+1]
                     exp_LP_index = next_char_index(assert_exp, let_RP_index)
                     if assert_exp[exp_LP_index] != "(":
                         printError("解析assert语句时下一个不为空的字符不为\"(\"")
-                        return None, None
                     exp_RP_index = match_parentheses(assert_exp, exp_LP_index)
                     if exp_RP_index is None:
                         printError("解析assert语句中的assert表达式时括号不匹配")
-                        return None, None
+                    assert_exp = assert_exp[exp_LP_index : exp_RP_index+1]
 
-                    assert_content = assert_exp[exp_LP_index:exp_RP_index+1]
-                    return assert_content, let_stmt
-                else:
-                    return assert_exp, None
+                return assert_exp
+
             else:
                 if assert_exp == "true" or assert_stmt == "false":
-                    return assert_exp, None
+                    return assert_exp
                 else:
                     printWarning("解析assert语句时\"(assert \"后出现未知内容")
-                    return assert_exp, None
+                    return assert_exp
                     
 """括号匹配.
 给出字符串及指定的左括号下标, 返回匹配的右括号下标. 若不匹配则返回None.

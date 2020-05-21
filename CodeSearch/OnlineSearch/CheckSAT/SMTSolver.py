@@ -12,4 +12,5 @@ class SMTSolver:
             return solver.check()
         except Exception as e:
             printError("solve SMT 时出错")
+            print("\n".join(constraints))
             printError(str(e))

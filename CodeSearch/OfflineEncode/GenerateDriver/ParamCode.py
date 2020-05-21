@@ -15,9 +15,9 @@ class ParamCode:
                 code = []
                 code.append("char p{index}[{length}];".format(index=index, length=length))
                 code.append("klee_make_symbolic(p{index}, sizeof(p{index}), \"?p{index}\");".format(index=index))
+                code.append("p{index}[{len}] = \'\\0\';".format(index=index, len=length-1))
                 code.append("for (int i = 0; i < {len}; i++)".format(len=length-1))
                 code.append("\tklee_assume(p{index}[i] != \'\\0\');".format(index=index))
-                code.append("klee_assume(p{index}[{len}] == \'\\0\');".format(index=index, len=length-1))
                 return code
             
             self.code = _gen_char_array_code(self.param_index, 2)
