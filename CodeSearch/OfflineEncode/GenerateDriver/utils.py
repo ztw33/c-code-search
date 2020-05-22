@@ -44,8 +44,12 @@ class CodeGenerator:
                 param_code_tree = param
                 prev_param = param
             else:
-                prev_param.child = param
+                temp = prev_param
+                while temp is not None:
+                    temp.child = param
+                    temp = temp.sibling
                 prev_param = param
+        # param_code_tree.print_param_code()
         return param_code_tree
     
     @staticmethod

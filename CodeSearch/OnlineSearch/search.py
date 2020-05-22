@@ -25,12 +25,15 @@ def search(query_stmt):
     
     match_func_id = []
     for func_id, func_sign in type_match_result.items():
+        sat_flag = False
         func_id = int(func_id)
         smt_files_path = db_conn.select_smt_files_by_id(func_id)
         # print(smt_files_path)
         match_rel = func_sign.get("match_rel")  # 匹配关系
 
         for filepath in smt_files_path:
+            if sat_flag:
+                break
             dirNameInfix = filepath.split('/')[-2].split('_')[1]
             parse_result = None
             if re.match(r"^[0-9]+\[[0-9]+\]", dirNameInfix) is not None:  # 函数参数中包含数组的
@@ -58,16 +61,12 @@ def search(query_stmt):
 
                 constraints = SMTConverter.query_to_cons(match_seq, func_sign, query_stmt.get("ret_val"), parse_result)
                 #print("constraints:\n", "\n".join(constraints))
+                print(filepath)
                 result = SMTSolver.check_sat(constraints)
                 if result == sat:
                     match_func_id.append(func_id)
+                    sat_flag = True
                     break
-                elif result == unsat:
-                    pass
-                elif result == unknown:
-                    pass
-                else:
-                    printError("unexpected result from SMTSolver")
 
     
     if len(match_func_id) == 0:

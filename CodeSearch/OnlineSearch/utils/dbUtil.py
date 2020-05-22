@@ -29,7 +29,7 @@ class DBUtil:
     
     def select_smt_files_by_id(self, func_id):
         cursor = self.cursor
-        cursor.execute("SELECT smt_filepath FROM pc WHERE func_id = " + str(func_id))
+        cursor.execute("SELECT smt_filepath FROM pc WHERE func_id = " + str(func_id) + " order by smt_filepath")
         result = []
         for smt_filepath in cursor:
             result.append(smt_filepath[0])

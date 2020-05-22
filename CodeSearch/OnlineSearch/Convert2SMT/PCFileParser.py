@@ -63,6 +63,9 @@ class PCFileParser:
                         ret_val = None
                         # 值类型
                         if ret_type == "val":
+                            if pc_ret_type != "int" and pc_ret_type != "char":
+                                assert_stmt = "(assert false )"
+                                break
                             ret = re.match(r"^;return val: (.*)", line)
                             ret_val = ret.group(1)
                             if len(ret_val) <= 0:
@@ -70,6 +73,9 @@ class PCFileParser:
                         
                         # 指针类型
                         else:
+                            if pc_ret_type != "char*":
+                                assert_stmt = "(assert false )"
+                                break
                             ret = re.match(r"^;array length: (.*)", line)
                             array_len = int(ret.group(1))
                             ret_val = []
@@ -88,11 +94,11 @@ class PCFileParser:
                             origin_assert_content=assert_content, 
                             ret_equal_exp=SMTConverter.equal_exp("?ret", pc_ret_type, ret_val))
 
-                        print("assert before: ", assert_stmt)
-                        print("assert content: ", assert_content)
-                        print("and exp: ", and_exp)
+                        # print("assert before: ", assert_stmt)
+                        # print("assert content: ", assert_content)
+                        # print("and exp: ", and_exp)
                         assert_stmt = assert_stmt.replace(assert_content, and_exp)
-                        print("assert after: ", assert_stmt)
+                        # print("assert after: ", assert_stmt)
                         i += 1
                         
                 elif len(line) > 0:
