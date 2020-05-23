@@ -13,6 +13,7 @@ if [ $# != 1 ]; then
     exit
 fi
 
+start_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
 
 echo "\033[34m====================提取函数签名====================\033[0m"
 ./"$parserPath" $1
@@ -59,3 +60,7 @@ do
     fi
 done
 echo "\033[32m[CodeSearch: SUCCESS] 路径约束入库成功\033[0m"
+
+finish_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+duration=$(($(($(date +%s -d "$finish_time")-$(date +%s -d "$start_time")))))
+echo "this shell script execution duration: $duration"

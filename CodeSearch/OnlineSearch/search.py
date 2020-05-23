@@ -13,6 +13,7 @@ from CheckSAT.SMTSolver import SMTSolver
 from z3 import sat, unsat, unknown
 from utils.printUtil import printError
 import re
+import datetime
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter(indent=4)
@@ -61,7 +62,7 @@ def search(query_stmt):
 
                 constraints = SMTConverter.query_to_cons(match_seq, func_sign, query_stmt.get("ret_val"), parse_result)
                 #print("constraints:\n", "\n".join(constraints))
-                print(filepath)
+                #print(filepath)
                 result = SMTSolver.check_sat(constraints)
                 if result == sat:
                     match_func_id.append(func_id)
@@ -79,9 +80,12 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         printError("参数个数错误")
         exit(1)
-    
+        
+    starttime = datetime.datetime.now()
     query_json_filepath = sys.argv[1]
     with open(query_json_filepath, "r") as f:
         query = json.load(f)
     search(query)
     db_conn.db_close()
+    endtime = datetime.datetime.now()
+    print ("运行时间: ", (endtime - starttime).seconds)
