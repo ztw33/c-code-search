@@ -35,12 +35,12 @@ echo "\033[32m[CodeSearch: SUCCESS] 生成驱动代码成功\033[0m"
 
 
 echo "\033[34m====================生成路径约束====================\033[0m"
-for driverPath in `find ./Test/1_DriverCode/ -name "${funcID}_*.c"`
+for driverPath in `find ./inter_files/1_DriverCode/ -name "${funcID}_*.c"`
 do
     filename=$(echo "$driverPath" | sed 's/.*\///' | sed 's/\.c//')
-    bcPath=./Test/2_BCFile/"$filename".bc
-    clang -I ~/Graguation_project/Library/klee/include/ -emit-llvm -c "$driverPath" -o "$bcPath"
-    smtDir=Test/3_SMT/"$filename"
+    bcPath=./inter_files/2_BCFile/"$filename".bc
+    clang -I /home/zhutingwei/c-code-search/klee/include/ -emit-llvm -c "$driverPath" -o "$bcPath"
+    smtDir=inter_files/3_SMT/"$filename"
     if [ -d "$smtDir" ]; then
         rm -rf "$smtDir"
     fi
@@ -51,7 +51,7 @@ echo "\033[32m[CodeSearch: SUCCESS] 生成路径约束成功\033[0m"
 
 
 echo "\033[34m====================路径约束入库====================\033[0m"
-for smtDir in `find ./Test/3_SMT/ -name "${funcID}_*"`
+for smtDir in `find ./inter_files/3_SMT/ -name "${funcID}_*" -not -path "./inter_files/3_SMT/"` 
 do
     python3 ./PCToDB/pcToDB.py "$funcID" "$smtDir"
     if [ $? = 1 ]; then

@@ -1,5 +1,3 @@
-example
-
 *.o
 lex.yy.c
 syntax.tab.*
@@ -8,4 +6,4 @@ parser
 __pycache__
 *.pyc
 
-Test
+inter_files

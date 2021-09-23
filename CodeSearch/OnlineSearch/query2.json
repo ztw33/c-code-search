@@ -1,0 +1,7 @@
+{
+    "param_num": 1,
+    "param_type": ["char*"],
+    "param_val": ["abcd"],
+    "ret_type": "char*",
+    "ret_val": "dcba"
+}

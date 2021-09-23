@@ -1,0 +1,7 @@
+{
+    "param_num": 1,
+    "param_type": ["int"],
+    "param_val": [-3],
+    "ret_type": "int",
+    "ret_val": -1
+}

@@ -20,7 +20,7 @@ pp = PrettyPrinter(indent=4)
 
 def search(query_stmt):
     type_match_result = TypeMatcher.match(query_stmt)
-    with open("./Test/type_match.json", "w") as f:
+    with open("type_match.json", "w") as f:
         json.dump(type_match_result, f)
         print("加载入json文件完成...")
     
