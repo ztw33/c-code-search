@@ -23,6 +23,13 @@ $ sudo apt-get install clang-6.0 llvm-6.0 llvm-6.0-dev llvm-6.0-tools
 此处选择STP. 按照此[链接](https://klee.github.io/build-stp/)安装即可。
 
 - 构建uClibc和POSIX环境
+
+建立一些链接：
+```shell
+$ sudo ln -s /usr/bin/llvm-config-6.0 /usr/bin/llvm-config
+$ sudo ln -s /usr/bin/clang-6.0 /usr/bin/clang
+```
+
 ```shell
 $ git clone https://github.com/klee/klee-uclibc.git  
 $ cd klee-uclibc  
@@ -31,13 +38,6 @@ $ make -j2
 $ cd .. 
 ```
 - 安装klee
-
-建立一些链接：
-```shell
-$ sudo ln -s /usr/bin/llvm-config-6.0 /usr/bin/llvm-config
-$ sudo ln -s /usr/bin/clang-6.0 /usr/bin/clang
-```
-
 在klee目录下：
 ```shell
 $ mkdir build
